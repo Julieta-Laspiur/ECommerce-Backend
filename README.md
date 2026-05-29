@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ECommerce Clean Architecture API
 
 Backend de e-commerce desarrollado con ASP.NET Core 8 aplicando Clean Architecture, CQRS, Entity Framework Core y autenticación JWT.

@@ -1,9 +1,11 @@
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.UseCases.Users.Dtos;
+using MediatR;
 
 namespace ECommerce.Application.UseCases.Users.Commands;
 
-public class LoginCommandHandler : ILoginUseCase
+public class LoginCommandHandler
+    : IRequestHandler<LoginCommand, AuthResponse?>
 {
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
@@ -16,7 +18,9 @@ public class LoginCommandHandler : ILoginUseCase
         _tokenService = tokenService;
     }
 
-    public async Task<AuthResponse?> ExecuteAsync(LoginCommand command)
+    public async Task<AuthResponse?> Handle(
+        LoginCommand command,
+        CancellationToken cancellationToken)
     {
         var request = command.Request;
         var user = await _userRepository.GetByEmailAsync(request.Email);

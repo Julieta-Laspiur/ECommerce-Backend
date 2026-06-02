@@ -1,10 +1,12 @@
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.UseCases.Orders.Dtos;
 using ECommerce.Domain.Entities;
+using MediatR;
 
 namespace ECommerce.Application.UseCases.Orders.Commands;
 
-public class CreateOrderCommandHandler : ICreateOrderUseCase
+public class CreateOrderCommandHandler
+    : IRequestHandler<CreateOrderCommand, OrderResponse>
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
@@ -17,9 +19,9 @@ public class CreateOrderCommandHandler : ICreateOrderUseCase
         _productRepository = productRepository;
     }
 
-    public async Task<OrderResponse> ExecuteAsync(
+    public async Task<OrderResponse> Handle(
         CreateOrderCommand command,
-        CancellationToken ct = default)
+        CancellationToken ct)
     {
         if (command.Request.Items is null || command.Request.Items.Count == 0)
         {

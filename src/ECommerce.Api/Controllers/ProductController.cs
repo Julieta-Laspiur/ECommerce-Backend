@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ECommerce.Application.UseCases.Products.Commands;
 using ECommerce.Application.UseCases.Products.Dtos;
 using ECommerce.Application.UseCases.Products.Queries;
+using MediatR;
 
 namespace ECommerce.Api.Controllers;
 
@@ -10,28 +11,18 @@ namespace ECommerce.Api.Controllers;
 [Route("api/[controller]")]
 public class ProductController : ControllerBase
 {
-    private readonly IGetAllProductsUseCase _getAllProductsUseCase;
-    private readonly IGetProductByIdUseCase _getProductByIdUseCase;
-    private readonly ICreateProductUseCase _createProductUseCase;
-    private readonly IDeleteProductUseCase _deleteProductUseCase;
+    private readonly IMediator _mediator;
 
-    public ProductController(
-        IGetAllProductsUseCase getAllProductsUseCase,
-        IGetProductByIdUseCase getProductByIdUseCase,
-        ICreateProductUseCase createProductUseCase,
-        IDeleteProductUseCase deleteProductUseCase)
+    public ProductController(IMediator mediator)
     {
-        _getAllProductsUseCase = getAllProductsUseCase;
-        _getProductByIdUseCase = getProductByIdUseCase;
-        _createProductUseCase = createProductUseCase;
-        _deleteProductUseCase = deleteProductUseCase;
+        _mediator = mediator;
     }
 
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var products = await _getAllProductsUseCase.ExecuteAsync();
+        var products = await _mediator.Send(new GetAllProductsQuery());
 
         return Ok(products);
     }
@@ -40,7 +31,7 @@ public class ProductController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var product = await _getProductByIdUseCase.ExecuteAsync(id);
+        var product = await _mediator.Send(new GetProductByIdQuery(id));
 
         if (product is null)
         {
@@ -54,12 +45,12 @@ public class ProductController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateProductRequest request)
     {
-        var product = await _createProductUseCase.ExecuteAsync(
+        var product = await _mediator.Send(new CreateProductCommand(
             request.Name,
             request.Description,
             request.Price,
             request.Stock,
-            request.CategoryId);
+            request.CategoryId));
 
         return CreatedAtAction(
             nameof(GetById),
@@ -72,7 +63,7 @@ public class ProductController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        await _deleteProductUseCase.ExecuteAsync(id);
+        await _mediator.Send(new DeleteProductCommand(id));
 
         return NoContent();
     }

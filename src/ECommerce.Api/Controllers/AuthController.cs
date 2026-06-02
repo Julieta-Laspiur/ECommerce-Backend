@@ -1,5 +1,6 @@
 using ECommerce.Application.UseCases.Users.Commands;
 using ECommerce.Application.UseCases.Users.Dtos;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Api.Controllers;
@@ -8,15 +9,11 @@ namespace ECommerce.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IRegisterUserUseCase _registerUserUseCase;
-    private readonly ILoginUseCase _loginUseCase;
+    private readonly IMediator _mediator;
 
-    public AuthController(
-        IRegisterUserUseCase registerUserUseCase,
-        ILoginUseCase loginUseCase)
+    public AuthController(IMediator mediator)
     {
-        _registerUserUseCase = registerUserUseCase;
-        _loginUseCase = loginUseCase;
+        _mediator = mediator;
     }
 
     [HttpPost("register")]
@@ -24,8 +21,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            await _registerUserUseCase.ExecuteAsync(
-                new RegisterUserCommand(request));
+            await _mediator.Send(new RegisterUserCommand(request));
 
             return Ok(new
             {
@@ -44,8 +40,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var response = await _loginUseCase.ExecuteAsync(
-            new LoginCommand(request));
+        var response = await _mediator.Send(new LoginCommand(request));
 
         if (response is null)
         {

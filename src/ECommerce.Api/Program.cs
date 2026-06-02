@@ -1,9 +1,5 @@
 using System.Text;
 using System.Security.Claims;
-using ECommerce.Application.UseCases.Orders.Commands;
-using ECommerce.Application.UseCases.Orders.Queries;
-using ECommerce.Application.UseCases.Products.Commands;
-using ECommerce.Application.UseCases.Products.Queries;
 using ECommerce.Application.UseCases.Users.Commands;
 using ECommerce.Infrastructure;
 using ECommerce.Infrastructure.Persistence;
@@ -23,23 +19,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<ECommerce.Application.Interfaces.ITokenService, JwtTokenService>();
 
-builder.Services.AddScoped<IGetAllProductsUseCase, GetAllProductsQuery>();
-
-builder.Services.AddScoped<IGetProductByIdUseCase, GetProductByIdQuery>();
-
-builder.Services.AddScoped<ICreateProductUseCase, CreateProductCommand>();
-
-builder.Services.AddScoped<IDeleteProductUseCase, DeleteProductCommand>();
-
-builder.Services.AddScoped<IRegisterUserUseCase, RegisterUserCommandHandler>();
-
-builder.Services.AddScoped<ILoginUseCase, LoginCommandHandler>();
-
-builder.Services.AddScoped<ICreateOrderUseCase, CreateOrderCommandHandler>();
-
-builder.Services.AddScoped<IGetOrderByIdUseCase, GetOrderByIdQuery>();
-
-builder.Services.AddScoped<IGetOrdersByUserUseCase, GetOrdersByUserQuery>();
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));
 
 var config = builder.Configuration;
 

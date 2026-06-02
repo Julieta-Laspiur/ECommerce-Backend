@@ -1,20 +1,6 @@
-using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
+using MediatR;
 
 namespace ECommerce.Application.UseCases.Products.Queries;
 
-public class GetAllProductsQuery : IGetAllProductsUseCase
-{
-    private readonly IProductRepository _repository;
-
-    public GetAllProductsQuery(
-        IProductRepository repository)
-    {
-        _repository = repository;
-    }
-
-    public async Task<IEnumerable<Product>> ExecuteAsync()
-    {
-        return await _repository.GetAllAsync();
-    }
-}
+public record GetAllProductsQuery() : IRequest<IEnumerable<Product>>;

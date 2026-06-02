@@ -1,9 +1,11 @@
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
+using MediatR;
 
 namespace ECommerce.Application.UseCases.Users.Commands;
 
-public class RegisterUserCommandHandler : IRegisterUserUseCase
+public class RegisterUserCommandHandler
+    : IRequestHandler<RegisterUserCommand>
 {
     private readonly IUserRepository _userRepository;
 
@@ -12,7 +14,9 @@ public class RegisterUserCommandHandler : IRegisterUserUseCase
         _userRepository = userRepository;
     }
 
-    public async Task ExecuteAsync(RegisterUserCommand command)
+    public async Task Handle(
+        RegisterUserCommand command,
+        CancellationToken cancellationToken)
     {
         var request = command.Request;
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
@@ -29,9 +33,7 @@ public class RegisterUserCommandHandler : IRegisterUserUseCase
             request.Name,
             passwordHash)
         {
-            Role = string.IsNullOrWhiteSpace(request.Role)
-                ? "User"
-                : request.Role
+            Role = "User"
         };
 
         await _userRepository.AddAsync(user);

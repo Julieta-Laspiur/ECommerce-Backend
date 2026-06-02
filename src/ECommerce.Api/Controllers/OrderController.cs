@@ -2,6 +2,7 @@ using System.Security.Claims;
 using ECommerce.Application.UseCases.Orders.Commands;
 using ECommerce.Application.UseCases.Orders.Dtos;
 using ECommerce.Application.UseCases.Orders.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,25 +13,18 @@ namespace ECommerce.Api.Controllers;
 [Route("api/[controller]")]
 public class OrderController : ControllerBase
 {
-    private readonly ICreateOrderUseCase _createOrderUseCase;
-    private readonly IGetOrderByIdUseCase _getOrderByIdUseCase;
-    private readonly IGetOrdersByUserUseCase _getOrdersByUserUseCase;
+    private readonly IMediator _mediator;
 
-    public OrderController(
-        ICreateOrderUseCase createOrderUseCase,
-        IGetOrderByIdUseCase getOrderByIdUseCase,
-        IGetOrdersByUserUseCase getOrdersByUserUseCase)
+    public OrderController(IMediator mediator)
     {
-        _createOrderUseCase = createOrderUseCase;
-        _getOrderByIdUseCase = getOrderByIdUseCase;
-        _getOrdersByUserUseCase = getOrdersByUserUseCase;
+        _mediator = mediator;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetMine(CancellationToken ct)
     {
         var userId = GetUserId();
-        var orders = await _getOrdersByUserUseCase.ExecuteAsync(userId, ct);
+        var orders = await _mediator.Send(new GetOrdersByUserQuery(userId), ct);
 
         return Ok(orders);
     }
@@ -38,7 +32,7 @@ public class OrderController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var order = await _getOrderByIdUseCase.ExecuteAsync(id, ct);
+        var order = await _mediator.Send(new GetOrderByIdQuery(id), ct);
 
         if (order is null)
         {
@@ -60,7 +54,7 @@ public class OrderController : ControllerBase
     {
         try
         {
-            var order = await _createOrderUseCase.ExecuteAsync(
+            var order = await _mediator.Send(
                 new CreateOrderCommand(GetUserId(), request),
                 ct);
 

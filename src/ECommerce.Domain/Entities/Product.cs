@@ -1,8 +1,9 @@
+using ECommerce.Domain.ValueObjects;
+
 namespace ECommerce.Domain.Entities;
 
 public class Product : BaseEntity
 {
-
     public string Name { get; private set; } = string.Empty;
 
     public string Description { get; private set; } = string.Empty;
@@ -15,12 +16,10 @@ public class Product : BaseEntity
 
     public DateTime CreatedAt { get; private set; }
 
-    // Constructor vacío para EF Core
     private Product()
     {
     }
 
-    // Constructor de negocio
     public Product(
         string name,
         string description,
@@ -28,19 +27,23 @@ public class Product : BaseEntity
         int stock,
         Guid categoryId)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("El nombre es obligatorio");
-
-        if (price < 0)
-            throw new ArgumentException("El precio no puede ser negativo");
-
         if (stock < 0)
-            throw new ArgumentException("El stock no puede ser negativo");
+        {
+            throw new ArgumentException("Stock cannot be negative");
+        }
+
+        if (categoryId == Guid.Empty)
+        {
+            throw new ArgumentException("Category is required");
+        }
+
+        var productName = ProductName.Create(name);
+        var productPrice = Money.Create(price);
 
         Id = Guid.NewGuid();
-        Name = name;
-        Description = description;
-        Price = price;
+        Name = productName.Value;
+        Description = description?.Trim() ?? string.Empty;
+        Price = productPrice.Value;
         Stock = stock;
         CategoryId = categoryId;
         CreatedAt = DateTime.UtcNow;
@@ -48,17 +51,18 @@ public class Product : BaseEntity
 
     public void UpdatePrice(decimal newPrice)
     {
-        if (newPrice < 0)
-            throw new ArgumentException("Precio inválido");
-
-        Price = newPrice;
+        Price = Money.Create(newPrice).Value;
     }
 
     public void ReduceStock(int quantity)
     {
-        if (quantity > Stock)
-            throw new InvalidOperationException("Stock insuficiente");
+        var requestedQuantity = Quantity.Create(quantity);
 
-        Stock -= quantity;
+        if (requestedQuantity.Value > Stock)
+        {
+            throw new InvalidOperationException("Insufficient stock");
+        }
+
+        Stock -= requestedQuantity.Value;
     }
 }

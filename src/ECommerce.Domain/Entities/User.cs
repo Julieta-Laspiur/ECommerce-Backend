@@ -1,3 +1,5 @@
+using ECommerce.Domain.ValueObjects;
+
 namespace ECommerce.Domain.Entities;
 
 public class User
@@ -14,7 +16,6 @@ public class User
 
     public DateTime CreatedAt { get; set; }
 
-    // Constructor vacío
     public User()
     {
     }
@@ -24,9 +25,21 @@ public class User
         string name,
         string passwordHash)
     {
+        var userEmail = EmailAddress.Create(email);
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("User name is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(passwordHash))
+        {
+            throw new ArgumentException("Password hash is required");
+        }
+
         Id = Guid.NewGuid();
-        Email = email;
-        Name = name;
+        Email = userEmail.Value;
+        Name = name.Trim();
         PasswordHash = passwordHash;
         CreatedAt = DateTime.UtcNow;
     }

@@ -1,3 +1,5 @@
+using ECommerce.Domain.ValueObjects;
+
 namespace ECommerce.Domain.Entities;
 
 public class OrderItem
@@ -24,10 +26,24 @@ public class OrderItem
         decimal unitPrice,
         int quantity)
     {
+        if (orderId == Guid.Empty)
+        {
+            throw new ArgumentException("Order is required");
+        }
+
+        if (productId == Guid.Empty)
+        {
+            throw new ArgumentException("Product is required");
+        }
+
+        var price = Money.Create(unitPrice);
+        var requestedQuantity =
+            ECommerce.Domain.ValueObjects.Quantity.Create(quantity);
+
         Id = Guid.NewGuid();
         OrderId = orderId;
         ProductId = productId;
-        UnitPrice = unitPrice;
-        Quantity = quantity;
+        UnitPrice = price.Value;
+        Quantity = requestedQuantity.Value;
     }
 }

@@ -6,7 +6,8 @@ public record OrderResponse(
     DateTime CreatedAt,
     string Status,
     decimal Total,
-    IReadOnlyCollection<OrderItemResponse> Items);
+    IReadOnlyCollection<OrderItemResponse> Items,
+    string Message = "");
 
 public record OrderItemResponse(
     Guid Id,

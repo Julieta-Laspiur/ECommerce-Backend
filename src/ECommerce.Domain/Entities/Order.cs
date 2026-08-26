@@ -31,6 +31,21 @@ public class Order
         Total = 0;
     }
 
+    public void MarkAsPaid()
+    {
+        Status = OrderStatus.Paid;
+    }
+
+    public void MarkPaymentRejected()
+    {
+        Status = OrderStatus.PaymentRejected;
+    }
+
+    public void MarkPaymentProcessingFailed()
+    {
+        Status = OrderStatus.PaymentProcessingFailed;
+    }
+
     public void AddItem(Product product, int quantity)
     {
         product.ReduceStock(quantity);

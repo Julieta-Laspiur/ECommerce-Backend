@@ -7,6 +7,11 @@ internal static class OrderMapper
 {
     public static OrderResponse ToResponse(Order order)
     {
+        return ToResponse(order, string.Empty);
+    }
+
+    public static OrderResponse ToResponse(Order order, string message)
+    {
         return new OrderResponse(
             order.Id,
             order.UserId,
@@ -20,6 +25,7 @@ internal static class OrderMapper
                     item.UnitPrice,
                     item.Quantity,
                     item.Subtotal))
-                .ToList());
+                .ToList(),
+            message);
     }
 }

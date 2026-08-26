@@ -1,5 +1,6 @@
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.UseCases.Orders.Dtos;
+using ECommerce.Application.UseCases.Payments.Dtos;
 using ECommerce.Domain.Entities;
 using MediatR;
 
@@ -10,13 +11,16 @@ public class CreateOrderCommandHandler
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IPaymentClient _paymentClient;
 
     public CreateOrderCommandHandler(
         IOrderRepository orderRepository,
-        IProductRepository productRepository)
+        IProductRepository productRepository,
+        IPaymentClient paymentClient)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
+        _paymentClient = paymentClient;
     }
 
     public async Task<OrderResponse> Handle(
@@ -47,8 +51,37 @@ public class CreateOrderCommandHandler
             order.AddItem(product, item.Quantity);
         }
 
+        var message = "Payment approved.";
+
+        try
+        {
+            var paymentResponse = await _paymentClient.ProcessPaymentAsync(
+                new PaymentRequestDto(order.Id, order.Total));
+
+            if (paymentResponse.Status.Equals("Approved", StringComparison.OrdinalIgnoreCase))
+            {
+                order.MarkAsPaid();
+                message = $"Payment approved. TransactionId: {paymentResponse.TransactionId}";
+            }
+            else
+            {
+                order.MarkPaymentRejected();
+                message = $"Payment rejected. TransactionId: {paymentResponse.TransactionId}";
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            order.MarkPaymentProcessingFailed();
+            message = $"The order was created, but the payment could not be processed because PaymentService is unavailable: {ex.Message}";
+        }
+        catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
+        {
+            order.MarkPaymentProcessingFailed();
+            message = $"The order was created, but the payment request timed out: {ex.Message}";
+        }
+
         await _orderRepository.AddAsync(order, ct);
 
-        return OrderMapper.ToResponse(order);
+        return OrderMapper.ToResponse(order, message);
     }
 }

@@ -8,7 +8,7 @@ namespace PaymentService.Application.Commands;
 public class ProcessPaymentCommandHandler
     : IRequestHandler<ProcessPaymentCommand, PaymentResponseDto>
 {
-    private const decimal ApprovalLimit = 100000m;
+    private const decimal ApprovalLimit = 50000m;
 
     public Task<PaymentResponseDto> Handle(
         ProcessPaymentCommand request,
